@@ -1,0 +1,3 @@
+.git*
+npm-debug.log
+.idea
