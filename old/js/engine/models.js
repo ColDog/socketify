@@ -1,3 +1,4 @@
+App = {}
 /** App.insert
  *  Client version of the model constructor
  */
