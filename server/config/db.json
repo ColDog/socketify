@@ -1,0 +1,7 @@
+{
+  "name": "fab_db",
+  "adapter": "postgres",
+  "username": null,
+  "password": null,
+  "host": null
+}

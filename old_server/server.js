@@ -49,11 +49,13 @@ engine.run = function(req, res, cb) {
   req.emitter = emitter
   runAsync(engine.middleware, req, res)
 }
+
 // Runs middleware for socket request
 engine.socket = function(req, cb) {
   var res = {}
   engine.run(req, res, cb)
 }
+
 engine.http = function(req, res, next) {
   if (_.isEmpty(req.params)) {
     next()
