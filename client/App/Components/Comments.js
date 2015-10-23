@@ -2,7 +2,6 @@
 
 import React from 'react';
 var Controller = require('controller')
-var CommentsController = new Controller('CommentsController')
 
 export default class CommentBox extends React.Component {
 
@@ -10,14 +9,14 @@ export default class CommentBox extends React.Component {
     super(props);
     this.render = this.render.bind(this);
     this.state = {data: []}
+    this.store = new Controller({
+      name: 'CommentsController',
+      onUpdate: this.setState.bind(this)
+    })
   }
 
   componentDidMount() {
-    var self = this
-    CommentsController.all(function(data) {
-      self.setState(data)
-      console.log('this state', self.state)
-    })
+    this.store.all()
   }
 
   render() {
@@ -95,4 +94,3 @@ class CommentForm extends React.Component {
     );
   }
 }
-

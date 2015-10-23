@@ -34,12 +34,19 @@ var CommentBox = (function (_React$Component) {
   }
 
   _createClass(CommentBox, [{
+    key: 'recieved',
+    value: function recieved(data) {
+      this.setState(data);
+    }
+  }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
       var self = this;
-      CommentsController.all(function (data) {
-        self.setState(data);
-        console.log('this state', self.state);
+      CommentsController.all(this.recieved.bind(this));
+      socket.on('update', function (name) {
+        if (name === 'CommentsController') {
+          ommentsController.all(self.recieved.bind(self));
+        }
       });
     }
   }, {
@@ -372,7 +379,7 @@ var Controller = (function () {
     _classCallCheck(this, Controller);
 
     this.name = name;
-    this.queries = [];
+    this.queries = {};
 
     // When the application tells us a record has been updated,
     // we check if it affects our model, then we run through and
@@ -382,7 +389,8 @@ var Controller = (function () {
       if (name === self.name) {
         // if name matches, go for it
         self.queries.forEach(function (query) {
-          console.log('sending queries: ', query);
+          // loop through queries and send them
+          console.log('sending queries: ', query); //
           self.emit(query.act, query.par, query.cb); // have to make sure these don't block each other
         });
       }
@@ -391,11 +399,19 @@ var Controller = (function () {
 
   // The main emitter, caches the queries in a variable and calls
   // the socket on the server end. When ready, it calls the callback
+  // takes 4 arguments action, parameters = {}, cache[true|false], callback(function)
+  // the action decides the controller action to be called along with the name,
+  // the paremeters are passed into the request object on the server. Cache set to true
+  // will re-call the function if an update happens on the server, and the callback is invoked after the
+  // data returns
 
   _createClass(Controller, [{
     key: 'emit',
-    value: function emit(act, par, cb) {
-      this.queries.push({ act: act, par: par, cb: cb });
+    value: function emit(act, par, cache, cb) {
+      if (cache) {
+        this.queries[act] = { par: par, cb: cb };
+      }
+
       var id = Math.random().toString(36).substring(7);
 
       // send the post request
@@ -417,31 +433,31 @@ var Controller = (function () {
   }, {
     key: 'show',
     value: function show(id, cb) {
-      this.emit('show', { id: id }, cb);
+      this.emit('show', { id: id }, true, cb);
     }
   }, {
     key: 'all',
     value: function all(cb) {
-      this.emit('all', null, cb);
+      this.emit('all', null, true, cb);
     }
   }, {
     key: 'create',
     value: function create(pars) {
-      this.emit('create', pars, function () {
+      this.emit('create', pars, false, function () {
         console.log('created');
       });
     }
   }, {
     key: 'destroy',
     value: function destroy(id) {
-      this.emit('destroy', { id: id }, function () {
+      this.emit('destroy', { id: id }, false, function () {
         console.log('updated');
       });
     }
   }, {
     key: 'update',
     value: function update(pars) {
-      this.emit('update', pars, function () {
+      this.emit('update', pars, false, function () {
         console.log('destroyed');
       });
     }

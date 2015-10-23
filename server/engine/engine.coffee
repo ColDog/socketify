@@ -15,23 +15,23 @@ App.updates = new EventEmitter();
 
 # ==> Models and Database
 # set configuration in server/config/db.json
-if (db_config['sequelize']['use']) {
+if db_config['sequelize']['use']
   App.sequelize = new App.Sequelize(
     db_config['sequelize']['name'],
     db_config['sequelize']['username'],
     db_config['sequelize']['password'], {
-      host:     db_config['host'],
-      dialect:  db_config['adapter'],
+      host:     db_config['sequelize']['host'],
+      dialect:  db_config['sequelize']['adapter'],
       pool: { max: 5, min: 0, idle: 10000 }
     }
   )
-}
-if (db_config['mongo']['use']) {
+
+if db_config['mongo']['use']
   App.mongo = require('mongous')
-}
-if (db_config['redis']['use']) {
+
+if db_config['redis']['use']
   App.redis = require('redis').createClient()
-}
+
 
 require('../app/models')(App)       # requires all models and loads them into App
 App.sequelize.sync()                # syncs all models which aren't in the database

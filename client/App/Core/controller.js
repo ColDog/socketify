@@ -1,20 +1,20 @@
 import user from 'user';
 
 class Controller {
-  constructor(name) {
-    this.name = name
-    this.queries = []
+  constructor(opts = {}) {
+    this.name = opts['name']
+    this.onUpdate = opts['onUpdate']
+    this.queries = {}
 
     // When the application tells us a record has been updated,
     // we check if it affects our model, then we run through and
     // call the queries and their callbacks again.
     var self = this;
     socket.on('update', function(name){
-      if (name === self.name) { // if name matches, go for it
-        self.queries.forEach(function(query){
-          console.log('sending queries: ', query)
-          self.emit(query.act, query.par, query.cb)  // have to make sure these don't block each other
-        })
+      if (name === self.name) {                       // if name matches, go for it
+        for (var act in self.queries) {               // loop through and call queries
+          self.emit(act, self.queries[act], true, self.queries[cb])
+        }
       }
     })
   }
@@ -28,7 +28,7 @@ class Controller {
   // data returns
   emit(act, par, cache, cb) {
     if (cache) {
-      this.queries.push({act: act, par: par, cb: cb})
+      this.queries[act] = {par: par, cb: cb}
     }
 
     var id = Math.random().toString(36).substring(7)
