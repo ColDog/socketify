@@ -1,6 +1,6 @@
 # Websockets for React and Node
 
-An easy way to integrate React JS and Node with Websockets. Provides a protocol for calling functions on the server back end from the client. It tries to be like Meteor minus all of the magic.
+An easy way to integrate React JS and Node with Websockets. Provides a protocol for using websockets to call functions on the server from the client, run them through middleware, and return them to the client. It also automatically updates the clients state when the server says that data has changed.
 
 ## Instructions
 Clone the repository and run NPM install in both the client and the server folders. Then run node `simple_server.js` in the client folder, as well as `gulp`. Run `nodemon server.coffee` in the server folder. Nothing has been extracted out into a package so feel free to change things for your particular use case and send a pull request.
@@ -20,7 +20,7 @@ Now, from the client you can say:
     
 This emits (through websockets) a request to the server, specifying the controller `CommentsController` and the action `all`. Once the request is recieved, it is run through middleware, like authentication or more, including the middleware specified by the client, namely, `CommentsController.all`, which adds comments to the json request and sends it back to the client.
 
-Further, this request is cached so the client knows it has already looked for all the comments. When the server sends an update through websockets saying that a comment has been updated, the client will request a new comment. When it gets this comment, you can specify an automatic callback to be applied for queries. This is specifically useful for React components where the state is handled automatically by the controller and the specified callback.
+Further, this request is cached so the client knows it has already looked for all the comments. When the server sends an update through websockets saying that a comment has been updated, the client will request `CommentsController.all` again. You then specify the callback that should handle this response. This is very usefuly for React components. Just specify which element of the state should be updated, and the controller will take care of calling those functions when new data comes in.
 
 ## Example with React
 Here is an example of the full `CommentBox` you would see in a React component:
