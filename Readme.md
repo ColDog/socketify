@@ -23,6 +23,7 @@ Here is an example of the full `CommentBox` you would see in a React component:
 
 
 ```javascript
+// Example CommentBox React component:
 export default class CommentBox extends React.Component {
 
   constructor(props) {
@@ -30,18 +31,24 @@ export default class CommentBox extends React.Component {
     this.render = this.render.bind(this);
     this.state = {data: []}
     this.handleSubmit = this.handleSubmit.bind(this)
-    this.store = new Controller({   // define the 'store' or the controller
+    
+    // define the 'store' or the controller
+    this.store = new Controller({
       name: 'CommentsController',
       updatesTo: {
-        all: this.setState.bind(this)  // when 'all' needs to be updated, use this callback
+        
+        // when 'all' needs to be updated, use this callback
+        all: this.setState.bind(this)
       }
     })
   }
 
   handleSubmit(comment) {
     this.state.data.push(comment) // eagerly push onto the state
-    // create called on the server, sends an update to the client who asks for all the 
-    // comments automatically. This is all you have to do to update all the other browsers!
+    
+    // create called on the server, sends an update to the 
+    // client who asks for all the comments automatically. 
+    // This is all you have to do to update all the other browsers!
     this.store.create(comment)    
   }
 
