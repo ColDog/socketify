@@ -23,7 +23,7 @@ This emits (through websockets) a request to the server, specifying the controll
 Further, this request is cached so the client knows it has already looked for all the comments. When the server sends an update through websockets saying that a comment has been updated, the client will request `CommentsController.all` again. You then specify the callback that should handle this response. This is very usefuly for React components. Just specify which element of the state should be updated, and the controller will take care of calling those functions when new data comes in.
 
 ## Example with React
-Here is an example of the full `CommentBox` you would see in a React component:
+Here is an example of the full `CommentBox` you would see in a React component. Check out the components folder above to see the full example.
 
 
 ```javascript
@@ -41,7 +41,9 @@ export default class CommentBox extends React.Component {
       name: 'CommentsController',
       updatesTo: {
         
-        // when 'all' needs to be updated, use this callback
+        // when 'all' needs to be updated, the controller
+        // will call this.setState(data), with the proper
+        // context because of .bind(this)
         all: this.setState.bind(this)
       }
     })
@@ -57,6 +59,11 @@ export default class CommentBox extends React.Component {
   }
 
   componentDidMount() {
+  
+    // Gets all of the comments and caches the query to be reused.
+    // no need for a callback because we specified in the controller
+    // initialization that any updates to the query 'all' will update
+    // the state with the new data.
     this.store.all()
   }
 
@@ -70,6 +77,9 @@ export default class CommentBox extends React.Component {
     )
   }
 }
+.
+.
+.
 ```
 
 ## Help with Development!
