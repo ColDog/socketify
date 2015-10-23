@@ -8,7 +8,12 @@ Clone the repository and run NPM install in both the client and the server folde
 #### POST Requests through Websockets
 When you set up a controller with the following code on the client:
 
-    var CommentsController = new Controller('CommentsController')
+    var CommentsController = new Controller({
+        name: 'CommentsController', // name corresponds to server controller
+        updatesTo: {
+          all: myFunction // function called when 'all' query is updated with new comments
+        }
+      })
 
 it provides a set of ready made functions. to allow you to connect with the server which is set up with the following on the server:
 
