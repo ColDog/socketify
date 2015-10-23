@@ -82,5 +82,29 @@ export default class CommentBox extends React.Component {
 .
 ```
 
+## Regular Example
+Want to just get data and do something with it when new information comes in?
+
+```
+function addComments(comments) {
+  // add comments to an element
+}
+
+var CommentsController = new Controller({
+  name: 'CommentsController',
+  updatesTo: {
+    
+    // when 'all' needs to be updated, the controller
+    // will call this.setState(data), with the proper
+    // context because of .bind(this)
+    all: updateAllComments
+  }
+})
+
+$(document).ready(function(){
+  CommentsController.all()
+}
+```
+
 ## Help with Development!
 Please!, do you like this idea? Let's build it out!
