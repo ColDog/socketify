@@ -14,7 +14,7 @@ it provides a set of ready made functions. to allow you to connect with the serv
 
     App.Controllers.CommentsController = App.BaseController(App.Comments, 'CommentsController')
   
-Now, from the client you can say on the client:
+Now, from the client you can say:
 
     CommentsController.all().then(<success function>, <failure function>)
     
