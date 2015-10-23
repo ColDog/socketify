@@ -2,6 +2,9 @@
 
 An easy way to integrate React JS and Node with Websockets. Provides a protocol for calling functions on the server back end from the client. It tries to be like Meteor minus all of the magic.
 
+## Instructions
+Clone the repository and run NPM install in both the client and the server folders. Then run node `simple_server.js` in the client folder, as well as `gulp`. Run `nodemon server.coffee` in the server folder. Nothing has been extracted out into a package so feel free to change things for your particular use case and send a pull request.
+
 #### POST Requests through Websockets
 When you set up a controller with the following code on the client:
 
@@ -19,6 +22,7 @@ This emits (through websockets) a request to the server, specifying the controll
 
 Further, this request is cached so the client knows it has already looked for all the comments. When the server sends an update through websockets saying that a comment has been updated, the client will request a new comment. When it gets this comment, you can specify an automatic callback to be applied for queries. This is specifically useful for React components where the state is handled automatically by the controller and the specified callback.
 
+## Example with React
 Here is an example of the full `CommentBox` you would see in a React component:
 
 
@@ -67,3 +71,6 @@ export default class CommentBox extends React.Component {
   }
 }
 ```
+
+## Help with Development!
+Please!, do you like this idea? Let's build it out!
