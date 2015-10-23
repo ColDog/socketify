@@ -1,55 +1,43 @@
-class Controller
-  constructor: (model, authenticated_routes) ->
-    @model = model
-    @authenticated_routes = (authenticated_routes || {show: true, all: true, create: true, update: true, destroy: true} )
+module.exports = (model, App, name)->
+  cntrl = {}
+  cntrl.model = model   # model that will be used for all the routes
+  cntrl.name = name     # name that will be sent with the update emit message
 
-  show: (req, res, next) ->
-    if @authenticated_routes['show'] and not req.authenticated
-      next()
-
-    @model.findById(req.params.id).then((rec)->
+  cntrl.show = (req, res, next) ->
+    cntrl.model.findById(req.params.id).then((rec)->
       res.data = rec
       next()
     )
 
-  all: (req, res, next) ->
-    if @authenticated_routes['all'] and not req.authenticated
-      next()
-
-    @model.find().then((rec) ->
+  cntrl.all = (req, res, next) ->
+    cntrl.model.findAll({}).then((rec) ->
       res.data = rec
       next()
     )
 
-  create: (req, res, next)->
-    if @authenticated_routes['create'] and not req.authenticated
-      next()
-
-    @model.create(req.params).then((rec)->
+  cntrl.create = (req, res, next)->
+    cntrl.model.create(req.params).then((rec)->
       res.data = rec
+      App.updates.emit('new', cntrl.name)
       next()
     )
 
-  update: (req, res, next) ->
-    if @authenticated_routes['update'] and not req.authenticated
-      next()
-
-    @model.findById(req.params.id).then((rec) ->
+  cntrl.update = (req, res, next) ->
+    cntrl.model.findById(req.params.id).then((rec) ->
       rec.update(req.params).then((updated) ->
         res.data = updated
+        App.updates.emit('new', cntrl.name)
         next()
       )
     )
 
-  destroy: (req, res, next) ->
-    if @authenticated_routes['destroy'] and not req.authenticated
-      next()
-
-    @model.findById(req.params.id).then((rec)->
+  cntrl.destroy = (req, res, next) ->
+    cntrl.model.findById(req.params.id).then((rec)->
       rec.destroy().then((destroyed)->
         res.data = destroyed
+        App.updates.emit('new', cntrl.name)
         next()
       )
     )
 
-module.exports = Controller
+  return cntrl

@@ -1,7 +1,16 @@
 {
-  "name": "fab_db",
-  "adapter": "postgres",
-  "username": null,
-  "password": null,
-  "host": null
+  "sequelize": {
+    "use": true,
+    "name": "fab_db",
+    "adapter": "postgres",
+    "username": null,
+    "password": null,
+    "host": null
+  },
+  "redis": {
+    "use": false
+  },
+  "mongo": {
+    "use": false
+  }
 }

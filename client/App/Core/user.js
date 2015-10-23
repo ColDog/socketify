@@ -1,5 +1,4 @@
-/** Default User Object */
-var user = function(data) {
+module.exports = function(data) {
   if (data) {
     localStorage.setItem('fabtoken', data.token)
     localStorage.setItem('fabemail', data.user.email)
@@ -26,5 +25,3 @@ var user = function(data) {
     }
   }
 }
-
-module.exports = user
