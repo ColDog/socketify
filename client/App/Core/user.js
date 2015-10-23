@@ -1,5 +1,4 @@
 module.exports = function(data) {
-
   // if initialized with an argument, set the localstorage elements
   if (data) {
     localStorage.setItem('fabtoken', data.token)
@@ -23,10 +22,9 @@ module.exports = function(data) {
     loggedIn: valid && token,
 
     // redirect if not authenticated
-    authenticate: function(nextState, replaceState) {
-      console.log('authenticated', valid, token)
-      if (!(valid && token)) { // redirect if not logged in
-        replaceState({ nextPathname: nextState.location.pathname }, '/login')
+    authenticate: function(nextState, transition) {
+      if (!valid && token) {
+        transition.to('/login')
       }
     },
 

@@ -1,7 +1,6 @@
 var browserify = require('browserify');
 var gulp = require('gulp');
 var source = require('vinyl-source-stream');
-var browserSync = require('browser-sync');
 var rename = require('gulp-rename');
 var babelify = require("babelify");
 
@@ -32,14 +31,6 @@ gulp.task('compile', function() {
     .pipe(gulp.dest(opts.buildFolder));
 });
 
-//gulp.task('browser-sync', function() {
-//  browserSync({
-//    server: {
-//      baseDir: opts.buildFolder
-//    }
-//  });
-//});
-
-gulp.task('default', ['browser-sync', 'compile', 'index'], function() {
+gulp.task('default', ['compile', 'index'], function() {
   gulp.watch(opts.watchedFiles, ['compile', 'index']);
 });

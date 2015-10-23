@@ -68,6 +68,12 @@ class Controller {
     return new Promise(function(resolve, reject){
       socket.once('response:'+id, function(data){
         console.log('recieved response', 'response:'+id)
+
+        // Logout the user if not authenticated
+        if (data.authenticated === false) {
+          user().logout()
+        }
+
         if (data.error) {
           if (typeof self.errorsTo[act] === 'function') {
             self.errorsTo[act](data)  // if a callback for action is present use it

@@ -4,4 +4,6 @@ import routes from './Routes';
 import user from './user'
 
 
-Router.run(routes, (Handler) => React.render(<Handler /> , document.body));
+Router.run(routes, Router.HistoryLocation, function (Handler) {
+  React.render(<Handler/>, document.body);
+});

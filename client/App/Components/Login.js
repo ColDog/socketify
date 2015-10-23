@@ -11,23 +11,23 @@ export default class Login extends React.Component {
 
   login(e) {
     e.preventDefault()
-    var email = React.findDOMNode(this.refs.email).value.trim()
-    var password = React.findDOMNode(this.refs.password).value.trim()
+    console.log('email', this.refs.email.value)
+    var email     = this.refs.email.value.trim()
+    var password  = React.findDOMNode(this.refs.password).value.trim()
     this.store.create({
       email: email,
       password: password
-    }).then(function(result){
-      RouterContainer.get().transitionTo('/')
-    }, function(err){
-
-    })
+    }).then(
+      function(result){ console.log('login result', result) },
+      function(err)   { }
+    )
   }
 
   render() {
     return (
-      <form onSubmit={this.login.bind(this)}>
-        <input type="email" refs="email" placeholder="email" />
-        <input type="password" refs="password" placeholder="password" />
+      <form onSubmit={this.login.bind(this)} className="content">
+        <input name="email" type="email" refs="email" placeholder="email" />
+        <input name="password"  type="password" refs="password" placeholder="password" />
         <input type="submit" value="Login" />
       </form>
     )

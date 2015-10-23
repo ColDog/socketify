@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "dependencies": {
     "babelify": "^6.0.2",
-    "browser-sync": "^2.7.1",
     "browserify": "^10.1.0",
     "gulp": "^3.8.11",
     "gulp-rename": "^1.2.2",
