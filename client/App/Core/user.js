@@ -4,8 +4,8 @@ module.exports = function(data) {
     localStorage.setItem('fabtoken', data.token)
     localStorage.setItem('fabemail', data.user.email)
     localStorage.setItem('fabname', data.user.name)
-    localStorage.setItem('fabid', data.user._id)
-    localStorage.setItem('fabexpires', data.user.exp)
+    localStorage.setItem('fabid', data.user.id)
+    localStorage.setItem('fabexpires', data.expiry)
   }
 
   var expires = localStorage.getItem('fabexpires')
@@ -16,7 +16,7 @@ module.exports = function(data) {
     token:    token,
     email:    localStorage.getItem('fabemail'),
     name:     localStorage.getItem('fabname'),
-    _id:      localStorage.getItem('fabid'),
+    id:      localStorage.getItem('fabid'),
     expires:  expires,
     valid:    valid,
     loggedIn: valid && token,

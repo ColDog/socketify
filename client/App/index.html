@@ -6,13 +6,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>react demo</title>
   <link rel="stylesheet" href="/theme.css">
+  <link rel="stylesheet" href="/base.css">
   <script src="https://cdn.socket.io/socket.io-1.3.7.js"></script>
   <script>socket = io('http://localhost:8000')</script>
 </head>
 
 <body>
+  <div id="flash"></div>
+  <main id="main"></main>
   <script src="app.js"></script>
   <script>
+    function flash(message) {
+      document.getElementById('flash').innerHTML = message
+      document.getElementById('flash').style.display = 'block'
+      setTimeout(function(){
+        document.getElementById('flash').style.display = 'none'
+      }, 5000)
+
+    }
+
     (function() {
       var open_dialogues = document.querySelectorAll('*[data-dialogue]')
       for (var d=0; d < open_dialogues.length; d++){

@@ -2,7 +2,7 @@ import React from 'react';
 import Controller from 'controller';
 import serialize from 'form-serialize';
 import {Navigation} from 'react-router';
-var LoginController = new Controller({ name: 'LoginController' });
+var RegistrationsController = new Controller({ name: 'RegistrationsController' });
 
 export default class Login extends React.Component {
   constructor(props) {
@@ -12,15 +12,15 @@ export default class Login extends React.Component {
 
   login(e) {
     e.preventDefault()
-
-    var user = serialize('login-form')
-    LoginController.create(user).then(
+    var nav = this.context.router
+    var user = serialize('register-form')
+    RegistrationsController.create(user).then(
       function(result){
         if(result.authenticated) {
-          flash('Authentication successful.')
-          Navigation.transitionTo('/')
+          flash('Registration successful.')
+          nav.transitionTo('/')
         } else {
-          flash('Authentication failed.')
+          flash('Registration failed.')
         }
       },
       function(err)   { console.log(err) }
@@ -29,11 +29,17 @@ export default class Login extends React.Component {
 
   render() {
     return (
-      <form onSubmit={this.login.bind(this)} className="content" id="login-form">
+      <form onSubmit={this.login.bind(this)} className="content" id="register-form">
         <input name="email"     type="text"     placeholder="email" />
+        <input name="name"     type="text"     placeholder="email" />
         <input name="password"  type="password" placeholder="password" />
+        <input name="password_confirmation"  type="password" placeholder="password confirmation" />
         <input type="submit" value="Login" />
       </form>
     )
   }
+}
+
+Login.contextTypes = {
+  router: React.PropTypes.func.isRequired
 }

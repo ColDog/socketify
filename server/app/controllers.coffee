@@ -10,3 +10,7 @@ module.exports = (App)->
   App.Controllers.LoginController = {
     create: App.methods.authenticate
   }
+
+  App.Controllers.RegistrationsController = {
+    create: App.methods.register
+  }

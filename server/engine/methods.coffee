@@ -16,12 +16,16 @@ module.exports = (App) ->
               # todo must use the App.User instance?
               App.User.create(user).then((instance)->
                 req.user = instance
+                res.user = instance
                 req.authenticated = true
                 res.authenticated = true
+                res.token = App.jwt.sign(instance, App.secret, {expiresIn: 604800})
+                res.expiry = Math.floor(new Date() / 1000) + 604800
                 next()
               )
             else
               req.user = null
+              res.user = null
               req.authenticated = false
               res.authenticated = false
               next()
@@ -29,6 +33,7 @@ module.exports = (App) ->
           )
         else
           req.user = null
+          res.user = null
           req.authenticated = false
           res.authenticated = false
           next()
@@ -45,6 +50,7 @@ module.exports = (App) ->
             App.bcrypt.compare(candidate, user.password, (err, match)->
               if (err)
                 req.user = null
+                res.user = null
                 req.authenticated = false
                 res.authenticated = false
                 next()
@@ -54,10 +60,12 @@ module.exports = (App) ->
                 req.authenticated = true
                 res.authenticated = true
                 res.token = App.jwt.sign(user, App.secret, {expiresIn: 604800})
+                res.expiry = Math.floor(new Date() / 1000) + 604800
                 next()
             )
           else
             req.user = null
+            res.user = null
             req.authenticated = false
             res.authenticated = false
             next()
@@ -66,6 +74,7 @@ module.exports = (App) ->
         App.jwt.verify(token, App.secret, (err, decoded)->
           if err
             req.user = null
+            res.user = null
             req.authenticated = false
             res.authenticated = false
             next()
@@ -78,6 +87,7 @@ module.exports = (App) ->
         )
       else  # can't find a password email or token
         req.user = null
+        res.user = null
         req.authenticated = false
         res.authenticated = false
         next()
