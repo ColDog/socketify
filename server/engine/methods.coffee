@@ -1,3 +1,6 @@
+# Base methods and utility functions useful for any project
+# Includes user registration and Authorization functions
+# Assumes an App.User Model.
 module.exports = (App) ->
   App.methods = {
 

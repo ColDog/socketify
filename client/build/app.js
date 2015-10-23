@@ -20,7 +20,6 @@ var _react = require('react');
 var _react2 = _interopRequireDefault(_react);
 
 var Controller = require('controller');
-var CommentsController = new Controller('CommentsController');
 
 var CommentBox = (function (_React$Component) {
   _inherits(CommentBox, _React$Component);
@@ -31,23 +30,25 @@ var CommentBox = (function (_React$Component) {
     _get(Object.getPrototypeOf(CommentBox.prototype), 'constructor', this).call(this, props);
     this.render = this.render.bind(this);
     this.state = { data: [] };
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.store = new Controller({
+      name: 'CommentsController',
+      updatesTo: {
+        all: this.setState.bind(this)
+      }
+    });
   }
 
   _createClass(CommentBox, [{
-    key: 'recieved',
-    value: function recieved(data) {
-      this.setState(data);
+    key: 'handleSubmit',
+    value: function handleSubmit(comment) {
+      this.state.data.push(comment);
+      this.store.create(comment);
     }
   }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
-      var self = this;
-      CommentsController.all(this.recieved.bind(this));
-      socket.on('update', function (name) {
-        if (name === 'CommentsController') {
-          ommentsController.all(self.recieved.bind(self));
-        }
-      });
+      this.store.all();
     }
   }, {
     key: 'render',
@@ -61,7 +62,7 @@ var CommentBox = (function (_React$Component) {
           'Comments'
         ),
         _react2['default'].createElement(CommentList, { data: this.state.data }),
-        _react2['default'].createElement(CommentForm, null)
+        _react2['default'].createElement(CommentForm, { onSubmit: this.handleSubmit.bind(this) })
       );
     }
   }]);
@@ -85,7 +86,7 @@ var Comment = (function (_React$Component2) {
     value: function render() {
       return _react2['default'].createElement(
         'div',
-        { className: 'comment' },
+        { className: 'comment', key: this.props.id },
         _react2['default'].createElement(
           'h5',
           null,
@@ -111,10 +112,11 @@ var CommentList = (function (_React$Component3) {
   _createClass(CommentList, [{
     key: 'render',
     value: function render() {
+      console.log('comment list data', this.props.data);
       var nodes = this.props.data.map(function (comment) {
         return _react2['default'].createElement(
           Comment,
-          { name: comment.name },
+          { name: comment.name, key: comment.id },
           comment.content
         );
       });
@@ -147,7 +149,7 @@ var CommentForm = (function (_React$Component4) {
       var author = _react2['default'].findDOMNode(this.refs.author).value.trim();
       var text = _react2['default'].findDOMNode(this.refs.text).value.trim();
       if (text && author) {
-        CommentsController.create({ name: author, content: text });
+        this.props.onSubmit({ name: author, content: text });
         _react2['default'].findDOMNode(this.refs.author).value = '';
         _react2['default'].findDOMNode(this.refs.text).value = '';
       }
@@ -349,19 +351,23 @@ var _Dashboard = require('Dashboard');
 
 var _Dashboard2 = _interopRequireDefault(_Dashboard);
 
+var _user = require('user');
+
+var _user2 = _interopRequireDefault(_user);
+
 var DefaultRoute = _reactRouter2['default'].DefaultRoute;
 var Route = _reactRouter2['default'].Route;
 
 var routes = _react2['default'].createElement(
   Route,
   { name: 'app', path: '/', handler: _Layout2['default'] },
-  _react2['default'].createElement(Route, { name: 'dashboard', handler: _Dashboard2['default'] }),
+  _react2['default'].createElement(Route, { name: 'dashboard', handler: _Dashboard2['default'], onEnter: (0, _user2['default'])().authenticate }),
   _react2['default'].createElement(DefaultRoute, { handler: _Home2['default'] })
 );
 
 module.exports = routes;
 
-},{"./Layout":4,"Dashboard":8,"Home":9,"react":205,"react-router":36}],6:[function(require,module,exports){
+},{"./Layout":4,"Dashboard":8,"Home":9,"react":205,"react-router":36,"user":7}],6:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -375,91 +381,134 @@ var _user = require('user');
 var _user2 = _interopRequireDefault(_user);
 
 var Controller = (function () {
-  function Controller(name) {
+  function Controller() {
+    var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
     _classCallCheck(this, Controller);
 
-    this.name = name;
-    this.queries = {};
+    this.name = opts['name']; // controller name to be used on the server
+    this.updatesTo = opts['updatesTo']; // methods to be called when new data is recieved for an action
+    this.errorsTo = opts['errorsTo']; // methods to be called when there is an error
+    this.queries = {}; // a cache of queries called when the server says data has been updated
 
-    // When the application tells us a record has been updated,
-    // we check if it affects our model, then we run through and
-    // call the queries and their callbacks again.
+    /** Server Notifies of an Update
+     * When the application tells us a record has been updated,
+     * we check if it affects our model, then we run through and
+     * call the queries and their callbacks again. */
     var self = this;
-    socket.on('update', function (name) {
-      if (name === self.name) {
-        // if name matches, go for it
-        self.queries.forEach(function (query) {
-          // loop through queries and send them
-          console.log('sending queries: ', query); //
-          self.emit(query.act, query.par, query.cb); // have to make sure these don't block each other
-        });
+    socket.on('update', function (info) {
+      console.log('recieved update', info);
+      if (info.controller === self.name) {
+        // if controller name that was updated is this controller's name
+        for (var act in self.queries) {
+          // loop through and call queries
+          if (self.queries.hasOwnProperty(act)) {
+
+            var par = self.queries[act]; // the parameters
+            // a 'get everything' query, or a 'where' query, or the query matches the
+            // parameters in the cached query.
+            // todo fix the last part
+            if (par === null || info.query === par || typeof par === 'object') {
+              self.emit({ action: act, params: par, cache: false });
+            }
+          }
+        }
       }
     });
   }
 
-  // The main emitter, caches the queries in a variable and calls
-  // the socket on the server end. When ready, it calls the callback
-  // takes 4 arguments action, parameters = {}, cache[true|false], callback(function)
-  // the action decides the controller action to be called along with the name,
-  // the paremeters are passed into the request object on the server. Cache set to true
-  // will re-call the function if an update happens on the server, and the callback is invoked after the
-  // data returns
+  /** Server Post Request Through Websockets
+   * The main emitter caches queries that should be cached so they can be rerun when
+   * updates occur, and then sends a message to the server with the controller name, the action
+   * any parameters and the authentication information.
+   *
+   * Upon response the onUpdate method is called set in the configuration earlier. Likely this
+   * will be used to change the state of your React model to the new data recieved. */
 
   _createClass(Controller, [{
     key: 'emit',
-    value: function emit(act, par, cache, cb) {
-      if (cache) {
-        this.queries[act] = { par: par, cb: cb };
-      }
+    value: function emit(opts) {
+      console.log('emitting', opts);
+      var act = opts['action'] || '';
+      var par = opts['params'] || {};
+      var cache = opts['cache'] || false;
+      var respond = opts['respond'] || true;
+      var token = opts['token'] || (0, _user2['default'])().token;
+      var controller = opts['controller'] || this.name;
 
+      if (cache) {
+        this.queries[act] = par;
+      }
       var id = Math.random().toString(36).substring(7);
 
       // send the post request
       socket.emit('post', {
-        id: id, controller: this.name,
+        id: id,
+        controller: controller,
         action: act,
         params: par,
-        token: (0, _user2['default'])().token
+        token: token,
+        respond: respond
       });
 
-      console.log('should hear at', 'response:' + id);
-      socket.once('response:' + id, function (data) {
-        console.log('incoming');
-        cb(data);
+      // returns a new promise and calls the callbacks if they are present
+      // once we recieve the result from the server.
+      var self = this;
+      return new Promise(function (resolve, reject) {
+        socket.once('response:' + id, function (data) {
+          console.log('recieved response', 'response:' + id);
+          if (data.error) {
+            if (typeof self.errorsTo[act] === 'function') {
+              self.errorsTo[act](data); // if a callback for action is present use it
+            }
+            reject(data); // reject the promise
+          } else {
+              if (typeof self.updatesTo[act] === 'function') {
+                console.log('updating with updated to');
+                self.updatesTo[act](data); // if a callback for the action is present use it
+              }
+              resolve(data); // resolve the promise
+            }
+        });
       });
     }
 
-    // Helper functions for common controller functions which map to the back end default functions
+    /** Helper functions with default settings
+     * Writer functions never cache the query (causes infinite loop since backend
+     * sends an update event after an action writes to the database) */
+
+    // Reader functions always cache the query
   }, {
     key: 'show',
-    value: function show(id, cb) {
-      this.emit('show', { id: id }, true, cb);
+    value: function show(id) {
+      this.emit({ action: 'show', params: { id: id }, cache: true });
+    }
+  }, {
+    key: 'where',
+    value: function where(pars) {
+      this.emit({ action: 'where', params: pars, cache: true });
     }
   }, {
     key: 'all',
-    value: function all(cb) {
-      this.emit('all', null, true, cb);
+    value: function all() {
+      this.emit({ action: 'all', params: {}, cache: true });
     }
+
+    // Writer functions never cache the query
   }, {
     key: 'create',
     value: function create(pars) {
-      this.emit('create', pars, false, function () {
-        console.log('created');
-      });
+      this.emit({ action: 'create', params: pars, cache: false });
     }
   }, {
     key: 'destroy',
     value: function destroy(id) {
-      this.emit('destroy', { id: id }, false, function () {
-        console.log('updated');
-      });
+      this.emit({ action: 'destroy', params: { id: id }, cache: false });
     }
   }, {
     key: 'update',
     value: function update(pars) {
-      this.emit('update', pars, false, function () {
-        console.log('destroyed');
-      });
+      this.emit({ action: 'update', params: pars, cache: false });
     }
   }]);
 
@@ -472,6 +521,8 @@ module.exports = Controller;
 'use strict';
 
 module.exports = function (data) {
+
+  // if initialized with an argument, set the localstorage elements
   if (data) {
     localStorage.setItem('fabtoken', data.token);
     localStorage.setItem('fabemail', data.user.email);
@@ -479,10 +530,12 @@ module.exports = function (data) {
     localStorage.setItem('fabid', data.user._id);
     localStorage.setItem('fabexpires', data.user.exp);
   }
+
   var expires = localStorage.getItem('fabexpires');
   var valid = Math.floor(expires) > Math.floor(new Date() / 1000);
   var token = localStorage.getItem('fabtoken');
   return {
+
     token: token,
     email: localStorage.getItem('fabemail'),
     name: localStorage.getItem('fabname'),
@@ -490,6 +543,17 @@ module.exports = function (data) {
     expires: expires,
     valid: valid,
     loggedIn: valid && token,
+
+    // redirect if not authenticated
+    authenticate: function authenticate(nextState, replaceState) {
+      console.log('authenticated', valid, token);
+      if (!(valid && token)) {
+        // redirect if not logged in
+        replaceState({ nextPathname: nextState.location.pathname }, '/login');
+      }
+    },
+
+    // logout a user by removing credentials
     logout: function logout() {
       localStorage.removeItem('fabtoken');
       localStorage.removeItem('fabemail');

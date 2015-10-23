@@ -9,10 +9,18 @@ export default class CommentBox extends React.Component {
     super(props);
     this.render = this.render.bind(this);
     this.state = {data: []}
+    this.handleSubmit = this.handleSubmit.bind(this)
     this.store = new Controller({
       name: 'CommentsController',
-      onUpdate: this.setState.bind(this)
+      updatesTo: {
+        all: this.setState.bind(this)
+      }
     })
+  }
+
+  handleSubmit(comment) {
+    this.state.data.push(comment)
+    this.store.create(comment)
   }
 
   componentDidMount() {
@@ -24,7 +32,7 @@ export default class CommentBox extends React.Component {
       <div className="commentBox">
         <h1>Comments</h1>
         <CommentList data={this.state.data} />
-        <CommentForm />
+        <CommentForm onSubmit={this.handleSubmit.bind(this)} />
       </div>
     )
   }
@@ -37,7 +45,7 @@ class Comment extends React.Component {
 
   render() {
     return (
-      <div className="comment">
+      <div className="comment" key={this.props.id}>
         <h5>{this.props.name}</h5>
         {this.props.children}
       </div>
@@ -51,9 +59,10 @@ class CommentList extends React.Component {
   }
 
   render() {
+    console.log( 'comment list data', this.props.data )
     var nodes = this.props.data.map(function(comment){
       return (
-        <Comment name={comment.name}>
+        <Comment name={comment.name} key={comment.id}>
           {comment.content}
         </Comment>
       )
@@ -78,7 +87,7 @@ class CommentForm extends React.Component {
     var author  = React.findDOMNode(this.refs.author).value.trim();
     var text    = React.findDOMNode(this.refs.text).value.trim();
     if (text && author) {
-      CommentsController.create({name: author, content: text})
+      this.props.onSubmit({name: author, content: text})
       React.findDOMNode(this.refs.author).value = '';
       React.findDOMNode(this.refs.text).value = '';
     }

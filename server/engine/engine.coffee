@@ -7,11 +7,14 @@ App.bcrypt          = require('bcrypt')
 App.io              = require('socket.io')(App.appHttp)
 App._               = require('underscore')
 App.Sequelize       = require('sequelize')
-db_config           = require('../config/db.json')
 
-# Events
-EventEmitter = require('events').EventEmitter
-App.updates = new EventEmitter();
+# ==> Configuration
+db_config     = require('../config/db.json')
+App.secret    = require('../config/secrets.json')['secret']
+
+# ==> Events
+EventEmitter  = require('events').EventEmitter
+App.updates   = new EventEmitter();
 
 # ==> Models and Database
 # set configuration in server/config/db.json
@@ -37,8 +40,9 @@ require('../app/models')(App)       # requires all models and loads them into Ap
 App.sequelize.sync()                # syncs all models which aren't in the database
 
 # ==> Middleware and Controllers
-App.BaseController = require('./controller')
-require('../app/controllers')(App)  # adds controllers into the app
+require('./methods')(App)           # attaches methods to App
+require('./controller')(App)        # attaches base controller to App
+require('../app/controllers')(App)  # adds controllers into the App
 require('../app/middleware')(App)   # adds user defined middleware
 require('./middleware')(App)        # adds middleware functions to the App
 App.app.use(App.httpMiddleware)     # adds middleware to express

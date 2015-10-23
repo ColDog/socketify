@@ -32,14 +32,14 @@ gulp.task('compile', function() {
     .pipe(gulp.dest(opts.buildFolder));
 });
 
-gulp.task('browser-sync', function() {
-  browserSync({
-    server: {
-      baseDir: opts.buildFolder
-    }
-  });
-});
+//gulp.task('browser-sync', function() {
+//  browserSync({
+//    server: {
+//      baseDir: opts.buildFolder
+//    }
+//  });
+//});
 
 gulp.task('default', ['browser-sync', 'compile', 'index'], function() {
-  gulp.watch(opts.watchedFiles, ['compile', 'index', browserSync.reload]);
+  gulp.watch(opts.watchedFiles, ['compile', 'index']);
 });

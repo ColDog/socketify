@@ -2,58 +2,102 @@ import user from 'user';
 
 class Controller {
   constructor(opts = {}) {
-    this.name = opts['name']
-    this.onUpdate = opts['onUpdate']
-    this.queries = {}
+    this.name       = opts['name']            // controller name to be used on the server
+    this.updatesTo  = opts['updatesTo']       // methods to be called when new data is recieved for an action
+    this.errorsTo   = opts['errorsTo']        // methods to be called when there is an error
+    this.queries    = {}                      // a cache of queries called when the server says data has been updated
 
-    // When the application tells us a record has been updated,
-    // we check if it affects our model, then we run through and
-    // call the queries and their callbacks again.
+    /** Server Notifies of an Update
+     * When the application tells us a record has been updated,
+     * we check if it affects our model, then we run through and
+     * call the queries and their callbacks again. */
     var self = this;
-    socket.on('update', function(name){
-      if (name === self.name) {                       // if name matches, go for it
-        for (var act in self.queries) {               // loop through and call queries
-          self.emit(act, self.queries[act], true, self.queries[cb])
+    socket.on('update', function(info){
+      console.log('recieved update', info)
+      if (info.controller === self.name) {        // if controller name that was updated is this controller's name
+        for (var act in self.queries) {           // loop through and call queries
+          if (self.queries.hasOwnProperty(act)) {
+
+            var par = self.queries[act]           // the parameters
+            // a 'get everything' query, or a 'where' query, or the query matches the
+            // parameters in the cached query.
+            // todo fix the last part
+            if (par === null || info.query === par || typeof par === 'object') {
+              self.emit({action: act, params: par, cache: false})
+            }
+
+          }
         }
       }
     })
+
   }
 
-  // The main emitter, caches the queries in a variable and calls
-  // the socket on the server end. When ready, it calls the callback
-  // takes 4 arguments action, parameters = {}, cache[true|false], callback(function)
-  // the action decides the controller action to be called along with the name,
-  // the paremeters are passed into the request object on the server. Cache set to true
-  // will re-call the function if an update happens on the server, and the callback is invoked after the
-  // data returns
-  emit(act, par, cache, cb) {
-    if (cache) {
-      this.queries[act] = {par: par, cb: cb}
-    }
+  /** Server Post Request Through Websockets
+   * The main emitter caches queries that should be cached so they can be rerun when
+   * updates occur, and then sends a message to the server with the controller name, the action
+   * any parameters and the authentication information.
+   *
+   * Upon response the onUpdate method is called set in the configuration earlier. Likely this
+   * will be used to change the state of your React model to the new data recieved. */
+  emit(opts) {
+    console.log('emitting', opts)
+    var act         = (opts['action'] || '')
+    var par         = (opts['params'] || {})
+    var cache       = (opts['cache'] || false)
+    var respond     = (opts['respond'] || true)
+    var token       = (opts['token'] || user().token)
+    var controller  = (opts['controller']  || this.name)
 
+    if (cache) { this.queries[act] = par }
     var id = Math.random().toString(36).substring(7)
 
     // send the post request
     socket.emit('post', {
-      id: id, controller: this.name,
+      id: id,
+      controller: controller,
       action: act,
       params: par,
-      token: user().token
+      token: token,
+      respond: respond
     })
 
-    console.log('should hear at', 'response:'+id)
-    socket.once('response:'+id, function (data) {
-      console.log('incoming')
-      cb(data)
+    // returns a new promise and calls the callbacks if they are present
+    // once we recieve the result from the server.
+    var self = this
+    return new Promise(function(resolve, reject){
+      socket.once('response:'+id, function(data){
+        console.log('recieved response', 'response:'+id)
+        if (data.error) {
+          if (typeof self.errorsTo[act] === 'function') {
+            self.errorsTo[act](data)  // if a callback for action is present use it
+          }
+          reject(data)   // reject the promise
+        } else {
+          if (typeof self.updatesTo[act] === 'function') {
+            console.log('updating with updated to')
+            self.updatesTo[act](data) // if a callback for the action is present use it
+          }
+          resolve(data)  // resolve the promise
+        }
+      })
     })
   }
 
-  // Helper functions for common controller functions which map to the back end default functions
-  show    (id, cb) { this.emit('show',    {id: id}, true,  cb) }
-  all     (cb)     { this.emit('all',     null,     true,  cb) }
-  create  (pars)   { this.emit('create',  pars,     false, function(){ console.log('created') }) }
-  destroy (id)     { this.emit('destroy', {id: id}, false, function(){ console.log('updated') } ) }
-  update  (pars)   { this.emit('update',  pars,     false, function(){ console.log('destroyed') } ) }
+  /** Helper functions with default settings
+   * Writer functions never cache the query (causes infinite loop since backend
+   * sends an update event after an action writes to the database) */
+
+  // Reader functions always cache the query
+  show(id)    { this.emit({action: 'show', params: {id: id}, cache: true }) }
+  where(pars) { this.emit({action: 'where', params: pars, cache: true }) }
+  all()       { this.emit({action: 'all', params: {}, cache: true }) }
+
+  // Writer functions never cache the query
+  create(pars){ this.emit({action: 'create', params: pars, cache: false }) }
+  destroy(id) { this.emit({action: 'destroy', params: {id: id}, cache: false }) }
+  update(pars){ this.emit({action: 'update', params: pars, cache: false }) }
+
 }
 
 module.exports = Controller
