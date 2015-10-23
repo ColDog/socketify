@@ -42,8 +42,7 @@ export default class CommentBox extends React.Component {
       updatesTo: {
         
         // when 'all' needs to be updated, the controller
-        // will call this.setState(data), with the proper
-        // context because of .bind(this)
+        // will call this.setState(data) with the new comments
         all: this.setState.bind(this)
       }
     })
@@ -95,8 +94,7 @@ var CommentsController = new Controller({
   updatesTo: {
     
     // when 'all' needs to be updated, the controller
-    // will call this.setState(data), with the proper
-    // context because of .bind(this)
+    // will call this function with the new comments
     all: updateAllComments
   }
 })
