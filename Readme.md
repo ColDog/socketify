@@ -2,10 +2,7 @@
 
 An easy way to integrate React JS and Node with Websockets. Provides a protocol for using websockets to call functions on the server from the client, run them through middleware, and return them to the client. It also automatically updates the clients state when the server says that data has changed.
 
-## Instructions
-Clone the repository and run NPM install in both the client and the server folders. Then run node `simple_server.js` in the client folder, as well as `gulp`. Run `nodemon server.coffee` in the server folder. Nothing has been extracted out into a package so feel free to change things for your particular use case and send a pull request.
-
-#### POST Requests through Websockets
+## POST Requests through Websockets
 When you set up a controller with the following code on the client:
 
 ```javascript
@@ -110,6 +107,18 @@ $(document).ready(function(){
   CommentsController.all()
 }
 ```
+
+## Instructions
+Must have `gulp` and `nodemon` installed globally. As well as `node`. The client static server is completely separated from the server, as well as the dependencies for each.
+
+1. Clone the repo
+2. `cd server && npm install`
+3. `nodemon server.coffee`
+4. open a new console window
+5. `cd client && npm install`
+6. `gulp`
+7. open a new console window
+8. `node simple_server.js` 
 
 ## Help with Development!
 Please!, do you like this idea? Let's build it out!
