@@ -45,31 +45,21 @@ class Controller {
     return new Promise(
       function(resolve, reject){
         console.log('emitting', opts)
-        var act         = (opts['action'] || '')
-        var par         = (opts['params'] || {})
-        var cache       = (opts['cache'] || false)
-        var respond     = (opts['respond'] || true)
-        var token       = (opts['token'] || user().token)
-        var controller  = (opts['controller']  || self.name)
+        var act         = (opts['action'] || '');
+        var par         = (opts['params'] || {});
+        var cache       = (opts['cache'] || false);
+        var respond     = (opts['respond'] || true);
+        var token       = (opts['token'] || user().token);
+        var controller  = (opts['controller']  || self.name);
         if (cache) { self.queries[act] = par }                // if is a reader request, cache the query
-        var id = Math.random().toString(36).substring(7)      // unique id for the returned socket
 
-        // send the post request
-        socket.emit('post', {
-          id: id,
+        socket.request({
           controller: controller,
           action: act,
           params: par,
           token: token,
           respond: respond
-        })
-
-        // returns a new promise and calls the callbacks if they are present
-        // once we recieve the result from the server.
-        socket.once('response:'+id, function(data){
-          console.log('recieved response', 'response:'+id)
-
-
+        }, function(data){
           // Automatically update user data if its present in the request
           if (data.authenticated === false) { // logout if not authenticated
             user().logout()
@@ -80,7 +70,7 @@ class Controller {
 
           if (data.error) {
             if (typeof self.errorsTo[act] === 'function') {
-              self.errorsTo[act](data)      // if a callback for action is present use it
+              self.errorsTo[act](data);    // if a callback for action is present use it
             }
             reject(data)                    // reject the promise
 
@@ -93,7 +83,7 @@ class Controller {
             resolve(data)                   // resolve the promise
 
           }
-        })
+        });
 
       }
     )
