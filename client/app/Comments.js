@@ -1,7 +1,7 @@
 'use strict';
 
 import React from 'react';
-var Controller = require('controller')
+const Resource = require('./tela').Resource;
 
 export default class CommentBox extends React.Component {
 
@@ -10,12 +10,15 @@ export default class CommentBox extends React.Component {
     this.render = this.render.bind(this);
     this.state = {data: []}
     this.handleSubmit = this.handleSubmit.bind(this)
-    this.store = new Controller({
-      name: 'CommentsController',
-      updatesTo: {
-        all: this.setState.bind(this)
-      }
+    this.store = new Resource({
+      path: '/comments',
+      after: this.handleUpdate.bind(this)
     })
+  }
+
+  handleUpdate(data){
+    console.log('handle update')
+    this.setState(data)
   }
 
   handleSubmit(comment) {
@@ -103,3 +106,5 @@ class CommentForm extends React.Component {
     );
   }
 }
+
+React.render

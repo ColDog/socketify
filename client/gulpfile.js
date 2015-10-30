@@ -5,12 +5,12 @@ var rename = require('gulp-rename');
 var babelify = require("babelify");
 
 var opts = {
-  mainJsInput: './App/app.js',
+  mainJsInput: './app/app.js',
   mainJsOutput: 'app.js',
   buildFolder: './build/',
-  indexHtml: './App/index.html',
+  indexHtml: './app/index.html',
   watchedFiles: [
-    './App/**/*'
+    './app/**/*'
   ]
 };
 
@@ -20,8 +20,8 @@ gulp.task('index', function() {
 });
 
 gulp.task('compile', function() {
-  var b = browserify('./App/app.js', {
-    paths: ['./node_modules','./App/Components', './App/Core', './App/Views']
+  var b = browserify('./app/app.js', {
+    paths: ['./node_modules','./app/Components', './app/Core', './app/Views']
   });
   b.transform(babelify);
   b.add(opts.mainJsInput);
